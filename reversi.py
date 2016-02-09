@@ -22,7 +22,9 @@ class Reversi:
 
 	directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]	
 
-	neytMove = b # First move is black
+	nextMove = b # First move is black
+
+	history = []
 	
 	def toString(self):
 		s = "  A B C D E F G H\n"
@@ -41,35 +43,67 @@ class Reversi:
 		print s
 		print "Black = X, White = O"
 		s = ""
-		for y in self.white :
-			s += self.tupleToString(y) + " "	
+		for x in self.white :
+			s += self.tileToString(x) + " "	
 		print "White tiles: " + s
 		s = ""
-		for y in self.black :
-			s += self.tupleToString(y) + " "	
+		for x in self.black :
+			s += self.tileToString(x) + " "	
 		print "Black tiles: " + s
+		
+		s = ""
+		for x in self.history :
+			s += str(x) + " "
+		print "History: " + s
 
 	def getTile(self, y, x):
 		return self.board[y][x]
 
 	def getMoves(self):
-		moves = {}
-		if self.neytMove == self.b :
-			for y in self.black :
-				for d in self.directions :
-					new = (y[0] + d[0], y[1] + d[1])
-					temp = []
-					while (self.inBounds(new) and
-						(self.board[new[0]][new[1]] == self.w)) :
-						temp.append(new)
-						new = (new[0] + d[0], new[1] + d[1])
-					if self.inBounds(new) and (self.board[new[0]][new[1]] == self.e) and len(temp) > 0 :
-						if not (new in moves) :
-							moves[new] = []
-						moves[new].extend(temp)
-		return moves
+		self.moves = {}
+		if self.nextMove == self.b :
+			search = self.black
+		else :
+			search = self.white
+		for x in search :
+			for d in self.directions :
+				new = (x[0] + d[0], x[1] + d[1])
+				temp = []
+				while (self.inBounds(new) and
+					(self.board[new[0]][new[1]] == -self.nextMove)) :
+					temp.append(new)
+					new = (new[0] + d[0], new[1] + d[1])
+				if self.inBounds(new) and (self.board[new[0]][new[1]] == self.e) and len(temp) > 0 :
+					if not (new in self.moves) :
+						self.moves[new] = []
+					self.moves[new].extend(temp)
+		return self.moves
+	
+	def passTurn(self):
+		self.history.append(("pass", 0))
+		self.nextMove = -self.nextMove
 
-#	def makeMove(self, 
+	def makeMove(self, tile):
+		move = self.moves[tile]
+		self.changeTile(tile)
+		for m in move :
+			self.changeTile(m)
+		self.history.append((self.tileToString(tile), self.nextMove))
+		self.nextMove = -self.nextMove
+
+	def changeTile(self, tile):
+		status = self.board[tile[0]][tile[1]]
+		if status == self.b :
+			self.black.remove(tile)
+		elif status == self.w :
+			self.white.remove(tile)
+		self.board[tile[0]][tile[1]] = self.nextMove
+		if self.nextMove == self.b :
+			self.black.append(tile)
+		else :
+			self.white.append(tile)
+			 
+		
 
 	def setBoard(self, board):
 		self.board = board
@@ -92,36 +126,43 @@ class Reversi:
 	def inBounds(self, point):
 		return point[0] >= 0 and point[0] < 8 and point[1] >= 0 and point[1] < 8
 
-	def tupleToString(self, t):
+	def tileToString(self, t):
 		return str(chr(65 + t[1])) + str((t[0] + 1))
+
+	def tally(self) :
+		blackScore = len(self.black)
+		whiteScore = len(self.white)
+		print "Black has %d tiles" % blackScore
+		print "White has %d tiles" % whiteScore
+		if blackScore > whiteScore :
+			print "Black wins!"
+		elif blackScore == whiteScore :
+			print "It's a draw!"
+		else :
+			print "White wins!"
 
 
 r = Reversi()
-r.toString()
-moves = r.getMoves()
-for m in moves :
-	s = r.tupleToString(m) + " changes: "
-	for l in moves[m] :
-		s += r.tupleToString(l) + " "
-	print s
-
-e = 0
-w = 1
-b = -1
-board = [[e, e, e, e, e, e, e, e],
-	[e, e, e, b, w, e, e, e],
-	[e, e, e, b, w, e, e, e],
-	[e, e, w, w, b, b, e, b],
-	[e, e, b, b, w, e, w, w],
-	[e, e, e, w, w, b, w, b],
-	[e, e, e, e, e, e, e, e],
-	[e, e, e, e, e, e, e, e]]
-
-r.setBoard(board)
-r.toString()
-moves = r.getMoves()
-for m in moves :
-	s = r.tupleToString(m) + " changes: "
-	for l in moves[m] :
-		s += r.tupleToString(l) + " "
-	print s
+c = 0
+for x in range(64) :
+	r.toString()
+	moves = r.getMoves()
+	if len(moves) == 0 :
+		print "No moves available"
+		if c == 1 :
+			r.tally()
+			break
+		r.passTurn()
+		c += 1
+	else :
+		for i, m in enumerate(moves) :
+			s = str(i) + " " + r.tileToString(m) + " changes: "
+			for l in moves[m] :
+				s += r.tileToString(l) + " "
+			print s
+	
+		number = input("Enter a number: ")
+		move = moves.keys()[number]
+		print r.tileToString(move)
+		r.makeMove(move)
+		c = 0
