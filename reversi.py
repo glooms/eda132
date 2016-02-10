@@ -34,7 +34,7 @@ class Reversi:
 
 		self.history = []
 
-		self.sumOptions = 0.0
+		self.options = []
 		
 		self.moves = {}
 	
@@ -99,7 +99,7 @@ class Reversi:
 					if not (new in self.moves) :
 						self.moves[new] = []
 					self.moves[new].extend(temp)
-#		self.sumOptions += len(self.moves)
+		self.options.append(len(self.moves))
 
 	def getMoves(self):
 		return self.moves
@@ -210,51 +210,54 @@ class Reversi:
 #		avgBranch = self.sumOptions / len(self.history)
 #		return avgBranch
 		return whiteScore - blackScore
+	
+	def getOptions(self):
+		return self.options
 
-#avg = []
-#for times in range(1000) :
-r = Reversi()
-r.possibleMoves()
-c = 0
-flag = False
-for x in range(64) :
-	r.toString()
-	moves = r.getMoves()
-	if flag :
-		flag = False
-		if len(moves) == 0 :
-			print "No moves available"
-			if c == 2 :
-				r.tally()
-				r.toString()
-				break
-			r.passTurn()
-			c += 1
-		else :
-			l = len(moves)
-			choice = random.randint(0, l - 1)
-			move = moves.keys()[choice]
+statistics = []
+for times in range(100) :
+	r = Reversi()
+	r.possibleMoves()
+	c = 0
+	flag = True
+	for x in range(64) :
+#		r.toString()
+		moves = r.getMoves()
+		if flag :
+		#	flag = False
+			if len(moves) == 0 :
+				print "No moves available"
+				if c == 2 :
+					r.tally()
+	#				r.toString()
+					break
+				r.passTurn()
+				c += 1
+			else :
+				l = len(moves)
+				choice = random.randint(0, l - 1)
+				move = moves.keys()[choice]
 #			move = moves.keys()[0]
 #			for m in moves :
 #				if len(moves[move]) < len(moves[m]) :
 #					move = m
-			r.makeMove(move)
-			c = 0
-	else :
-		flag = True
-		if len(moves) == 0 :
-			if c == 2 :
-				r.tally()
-				r.toString()
-				break
-			r.passTurn()
-			c += 1
+				r.makeMove(move)
+				c = 0
 		else :
-			r.calcMove(4, -64, 64, True, CONST_BLACK, "root")
-			m = r.getOptimalMove()
-			r.makeMove(m)
-			
-
+			flag = True
+			if len(moves) == 0 :
+				if c == 2 :
+					r.tally()
+			#		r.toString()
+					break
+				r.passTurn()
+				c += 1
+			else :
+				r.calcMove(4, -64, 64, True, CONST_BLACK, "root")
+				m = r.getOptimalMove()
+				r.makeMove(m)
+	statistics.append(r.getOptions())		
+	
 """			for i, m in enumerate(moves) :
 				s = str(i) + " " + r.tileToString(m) + " changes: "
 				for l in moves[m] :
@@ -269,9 +272,9 @@ for x in range(64) :
 			print r.tileToString(move)
 			r.makeMove(move)
 			c = 0 """
-#with open('test.csv', 'w', 1) as fp:
-#	a = csv.writer(fp, delimiter=',')
-#	data=[]
-#	for x in avg :
-#		data.append([x])
-#	a.writerows(data)
+with open('statistics.csv', 'w', 1) as fp:
+	a = csv.writer(fp, delimiter=',')
+	data=[]
+	for x in statistics :
+		data.append(x)
+	a.writerows(data)
