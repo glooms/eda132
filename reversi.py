@@ -1,6 +1,7 @@
 import io
 import random
 import csv
+import time
 
 CONST_EMPTY = 0
 CONST_WHITE = 1
@@ -13,7 +14,7 @@ class Reversi:
 	b = CONST_BLACK # Black tile
 
 #	def __init__(self, p1, t1, p2, t2) :
-	def __init__(self) :
+	def __init__(self, timelimit) :
 		e = self.e
 		w = self.w
 		b = self.b
@@ -37,6 +38,8 @@ class Reversi:
 		self.options = []
 		
 		self.moves = {}
+
+		self.timelimit = timelimit - 0.02
 	
 	def toString(self):
 		s = "  A B C D E F G H\n"
@@ -147,7 +150,11 @@ class Reversi:
 			self.white.append(tile)
 
 			 
-	def calcMove(self, depth, alpha, beta, maximize, color, parent) :
+	def calcMove(self, depth, alpha, beta, maximize, color, parent, startTime) :
+		if (time.time() - startTime) >= self.timelimit :
+			if maximize :
+				return -64
+			return 64
 		if depth == 0 :
 			score = self.tally()
 			if color == self.b :
@@ -167,7 +174,7 @@ class Reversi:
 			v = -64
 			for m in self.moves :
 				self.makeMove(m)
-				res = self.calcMove(depth - 1, alpha, beta, False, color, m)
+				res = self.calcMove(depth - 1, alpha, beta, False, color, m, startTime)
 				if v < res :
 					v = res
 					if parent is "root" :
@@ -180,7 +187,7 @@ class Reversi:
 			v = 64
 			for m in self.moves :
 				self.makeMove(m)
-				v = min(v, self.calcMove(depth - 1, alpha, beta, False, color, m))
+				v = min(v, self.calcMove(depth - 1, alpha, beta, False, color, m, startTime))
 				self.undoLastMove()
 				beta = min(beta, v)
 				if beta <= alpha :
@@ -215,49 +222,51 @@ class Reversi:
 	def getOptions(self):
 		return self.options
 
-statistics = []
-for times in range(100) :
-	r = Reversi()
-	r.possibleMoves()
-	c = 0
-	flag = True
-	for x in range(64) :
-#		r.toString()
-		moves = r.getMoves()
-		if flag :
-		#	flag = False
-			if len(moves) == 0 :
-				print "No moves available"
-				if c == 1 :
-					r.tally()
-	#				r.toString()
-					break
-				r.passTurn()
-				c += 1
-			else :
-				l = len(moves)
-				choice = random.randint(0, l - 1)
-				move = moves.keys()[choice]
+#statistics = []
+#for times in range(100) :
+r = Reversi(1)
+r.possibleMoves()
+c = 0
+flag = True
+for x in range(64) :
+#	r.toString()
+	moves = r.getMoves()
+	if flag :
+		flag = False
+		if len(moves) == 0 :
+			print "No moves available"
+			if c == 1 :
+				r.tally()
+				r.toString()
+				break
+			r.passTurn()
+			c += 1
+		else :
+			l = len(moves)
+			choice = random.randint(0, l - 1)
+			move = moves.keys()[choice]
 #			move = moves.keys()[0]
 #			for m in moves :
 #				if len(moves[move]) < len(moves[m]) :
 #					move = m
-				r.makeMove(move)
-				c = 0
+			r.makeMove(move)
+			c = 0
+	else :
+		flag = True
+		if len(moves) == 0 :
+			if c == 1 :
+				r.tally()
+				r.toString()
+				break
+			r.passTurn()
+			c += 1
 		else :
-			flag = True
-			if len(moves) == 0 :
-				if c == 1 :
-					r.tally()
-			#		r.toString()
-					break
-				r.passTurn()
-				c += 1
-			else :
-				r.calcMove(4, -64, 64, True, CONST_BLACK, "root")
-				m = r.getOptimalMove()
-				r.makeMove(m)
-	statistics.append(r.getOptions())		
+			start = time.time()
+			r.calcMove(3, -64, 64, True, CONST_BLACK, "root", start)
+			print "Time elapsed: %f" % (time.time() - start)
+			m = r.getOptimalMove()
+			r.makeMove(m)
+# statistics.append(r.getOptions())		
 	
 """			for i, m in enumerate(moves) :
 				s = str(i) + " " + r.tileToString(m) + " changes: "
@@ -272,10 +281,10 @@ for times in range(100) :
 			move = moves.keys()[number]
 			print r.tileToString(move)
 			r.makeMove(move)
-			c = 0 """
-with open('statistics.csv', 'w', 1) as fp:
-	a = csv.writer(fp, delimiter=',')
-	data=[]
-	for x in statistics :
-		data.append(x)
-	a.writerows(data)
+			c = #0 """
+# with open('statistics.csv', 'w', 1) as fp:
+#	a = csv.writer(fp, delimiter=',')
+#	data=[]
+#	for x in statistics :
+#		data.append(x)
+#	a.writerows(data)
