@@ -107,6 +107,7 @@ class Reversi:
 	def passTurn(self):
 		self.history.append((0, 0, 0))
 		self.whosMove = -self.whosMove
+		self.possibleMoves()
 
 	def makeMove(self, tile):
 		move = self.moves[tile]
@@ -227,7 +228,7 @@ for times in range(100) :
 		#	flag = False
 			if len(moves) == 0 :
 				print "No moves available"
-				if c == 2 :
+				if c == 1 :
 					r.tally()
 	#				r.toString()
 					break
@@ -246,7 +247,7 @@ for times in range(100) :
 		else :
 			flag = True
 			if len(moves) == 0 :
-				if c == 2 :
+				if c == 1 :
 					r.tally()
 			#		r.toString()
 					break
