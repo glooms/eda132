@@ -160,7 +160,7 @@ class Reversi:
 		return avgBranch
 
 avg = []
-for times in range(10) :
+for times in range(1000) :
 	r = Reversi()
 	c = 0
 	flag = False
@@ -206,8 +206,8 @@ for times in range(10) :
 #						move = m
 				r.makeMove(move)
 				c = 0
-with open('test.csv', 'w',newline='') as fp:
-	a = csv.writer(fp,delimiter=',')
+with open('test.csv', 'w', 1) as fp:
+	a = csv.writer(fp, delimiter=',')
 	data=[]
 	for x in avg :
 		data.append([x])
