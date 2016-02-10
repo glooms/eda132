@@ -146,7 +146,7 @@ class Reversi:
 			self.white.append(tile)
 
 			 
-	def calcMove(self, depth, flag, color, parent) :
+	def calcMove(self, depth, alpha, beta, maximize, color, parent) :
 		if depth == 0 :
 			score = self.tally()
 			if color == self.b :
@@ -161,24 +161,30 @@ class Reversi:
 #		for k, v in self.moves:
 #			s += "(" + str(k) + ", " + str(v) + ") "
 #		print s
-		alpha = -64
-		beta = 64
-		for m in self.moves :
-			self.makeMove(m)
-			val = self.calcMove(depth - 1, not flag, color, m)
-			if flag :
-				if alpha < val :
-					alpha = val
+		v = 0
+		if maximize :
+			v = -64
+			for m in self.moves :
+				self.makeMove(m)
+				res = self.calcMove(depth - 1, alpha, beta, False, color, m)
+				if v < res :
+					v = res
 					if parent is "root" :
 						self.optimalMove = m
-			else :
-				if beta > val :
-					beta = val
-			self.undoLastMove()
-#			self.toString()
-		if flag :
-			return alpha
-		return beta
+				self.undoLastMove()
+				alpha = max(alpha, v)
+				if beta <= alpha :
+					break
+		else :
+			v = 64
+			for m in self.moves :
+				self.makeMove(m)
+				v = min(v, self.calcMove(depth - 1, alpha, beta, False, color, m))
+				self.undoLastMove()
+				beta = min(beta, v)
+				if beta <= alpha :
+					break
+		return v
 
 		
 	def getOptimalMove(self):
@@ -218,7 +224,7 @@ for x in range(64) :
 		flag = False
 		if len(moves) == 0 :
 			print "No moves available"
-			if c == 1 :
+			if c == 2 :
 				r.tally()
 				r.toString()
 				break
@@ -228,6 +234,7 @@ for x in range(64) :
 			l = len(moves)
 			choice = random.randint(0, l - 1)
 			move = moves.keys()[choice]
+#			move = moves.keys()[0]
 #			for m in moves :
 #				if len(moves[move]) < len(moves[m]) :
 #					move = m
@@ -236,14 +243,14 @@ for x in range(64) :
 	else :
 		flag = True
 		if len(moves) == 0 :
-			if c == 1 :
+			if c == 2 :
 				r.tally()
 				r.toString()
 				break
 			r.passTurn()
 			c += 1
 		else :
-			r.calcMove(3, True, CONST_BLACK, "root")
+			r.calcMove(4, -64, 64, True, CONST_BLACK, "root")
 			m = r.getOptimalMove()
 			r.makeMove(m)
 			
@@ -268,44 +275,3 @@ for x in range(64) :
 #	for x in avg :
 #		data.append([x])
 #	a.writerows(data)
-"""	def alphabeta(self, node, depth, alpha, beta, maximize, color) :
-		if depth == 0 :
-			score = self.tally()
-			if color == self.b :
-#				print "Found %d" % -score
-				return (-score, node)
-#			print "Found %d" % score
-			return (score, node)
-#		print "----------------------------------"
-#		print "Depth %d color %d" % (depth, color)
-#		self.toString()
-#		s = str(parent) + " --> "
-#		for k, v in self.moves:
-#			s += "(" + str(k) + ", " + str(v) + ") "
-#		print s
-		alpha = -64
-		beta = 64
-		if maximize :
-			v = -64
-			for m in self.moves :
-				self.makeMove(m)
-				res = self.alphabeta(m, depth - 1, alpha, beta, False, color)
-				v = max(v, res[0])
-				if v == res[0] and node is "root" :
-					self.optimalMove = res[1]
-				alpha = max(alpha, v)
-				if beta <= alpha :
-					break
-			self.undoLastMove()
-			return (v, node)
-		else :
-			v = 64
-			for m in self.moves :
-				self.makeMove(m)
-				v = min(v, self.alphabeta(m, depth - 1, alpha, beta, True, color)[0])
-				beta = min(beta, v)
-				if beta <= alpha :
-					break
-			self.undoLastMove()
-			return (v, node)
-"""
