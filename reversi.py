@@ -12,6 +12,7 @@ class Reversi:
 	w = CONST_WHITE # White tile
 	b = CONST_BLACK # Black tile
 
+#	def __init__(self, p1, t1, p2, t2) :
 	def __init__(self) :
 		e = self.e
 		w = self.w
@@ -92,7 +93,7 @@ class Reversi:
 					if not (new in self.moves) :
 						self.moves[new] = []
 					self.moves[new].extend(temp)
-		self.sumOptions += len(self.moves)
+#		self.sumOptions += len(self.moves)
 		return self.moves
 	
 	def passTurn(self):
@@ -107,6 +108,20 @@ class Reversi:
 		self.history.append((tile, move, self.nextMove))
 		self.nextMove = -self.nextMove
 
+	def undoLastMove(self):
+		move = self.history.pop()
+		tile = move[0]
+		if move[2] == self.b :
+			self.black.remove(tile)
+		else :
+			self.white.remove(tile)
+		self.board[tile[0]][tile[1]] = self.e
+		changes = move[1]
+		self.nextMove = -move[2]
+		for m in changes :
+			self.changeTile(m)
+		
+
 	def changeTile(self, tile):
 		status = self.board[tile[0]][tile[1]]
 		if status == self.b :
@@ -118,26 +133,21 @@ class Reversi:
 			self.black.append(tile)
 		else :
 			self.white.append(tile)
-			 
-		
 
-	def setBoard(self, board):
-		self.board = board
-		white = []
-		black = []
-		c_y = 0
-		c_x = 0
-		for y in board :
-			for x in y :
-				if x == self.w :
-					white.append((c_y, c_x))
-				elif x == self.b :
-					black.append((c_y, c_x))
-				c_x += 1
-			c_y += 1
-			c_x = 0
-		self.white = white
-		self.black = black
+			 
+
+	def calcMove(self, depth):
+		if depth == 0:
+			self.toString()
+			return 0
+		self.getMoves()
+		self.toString()
+		self.makeMove(self.moves.keys()[0])
+		self.calcMove(depth - 1)
+		self.undoLastMove()
+
+	def getOptimalMove(self):
+		return self.optimalMove
 
 	def inBounds(self, point):
 		return point[0] >= 0 and point[0] < 8 and point[1] >= 0 and point[1] < 8
@@ -148,67 +158,110 @@ class Reversi:
 	def tally(self) :
 		blackScore = len(self.black)
 		whiteScore = len(self.white)
-		print "Black has %d tiles" % blackScore
-		print "White has %d tiles" % whiteScore
-		if blackScore > whiteScore :
-			print "Black wins!"
-		elif blackScore == whiteScore :
-			print "It's a draw!"
-		else :
-			print "White wins!"
-		avgBranch = self.sumOptions / len(self.history)
-		return avgBranch
+	#	print "Black has %d tiles" % blackScore
+	#	print "White has %d tiles" % whiteScore
+	#	if blackScore > whiteScore :
+	#		print "Black wins!"
+	#	elif blackScore == whiteScore :
+	#		print "It's a draw!"
+	#	else :
+	#		print "White wins!"
+#		avgBranch = self.sumOptions / len(self.history)
+#		return avgBranch
+		return whiteScore - blackScore
 
-avg = []
-for times in range(1000) :
-	r = Reversi()
-	c = 0
-	flag = False
-	for x in range(64) :
-		if flag :
-			flag = False
-			r.toString()
-			moves = r.getMoves()
-			if len(moves) == 0 :
-				print "No moves available"
-				if c == 1 :
-					r.tally()
-					break
-				r.passTurn()
-				c += 1
-			else :
-				for i, m in enumerate(moves) :
-					s = str(i) + " " + r.tileToString(m) + " changes: "
-					for l in moves[m] :
-						s += r.tileToString(l) + " "
-					print s
-			
-				number = input("Enter a number: ")
-				move = moves.keys()[number]
-				print r.tileToString(move)
-				r.makeMove(move)
-				c = 0
+#avg = []
+#for times in range(1000) :
+r = Reversi()
+c = 0
+flag = True
+for x in range(64) :
+	if flag :
+#		flag = False
+#		r.toString()
+		r.calcMove(3)
+		r.toString()
+		moves = r.getMoves()
+		if len(moves) == 0 :
+			print "No moves available"
+			if c == 1 :
+				r.tally()
+				break
+			r.passTurn()
+			c += 1
 		else :
-#			flag = True
-			moves = r.getMoves()
-			if len(moves) == 0 :
-				if c == 1 :
-					avg.append(r.tally())
-					break
-				r.passTurn()
-				c += 1
+			for i, m in enumerate(moves) :
+				s = str(i) + " " + r.tileToString(m) + " changes: "
+				for l in moves[m] :
+					s += r.tileToString(l) + " "
+				print s
+			number = input("Enter a number: ")
+			if number == 20 :
+				print "Undoing move"
+				r.undoLastMove()
+				continue
+			move = moves.keys()[number]
+			print r.tileToString(move)
+			r.makeMove(move)
+			c = 0
+"""	else :
+		flag = True
+		moves = r.getMoves()
+		if len(moves) == 0 :
+			if c == 1 :
+				r.tally()
+				break
+			r.passTurn()
+			c += 1
+		else :
+			l = len(moves)
+			choice = random.randint(0, l - 1)
+			move = moves.keys()[choice]
+			for m in moves :
+				if len(moves[move]) < len(moves[m]) :
+					move = m
+			r.makeMove(move)
+			c = 0 """
+
+#with open('test.csv', 'w', 1) as fp:
+#	a = csv.writer(fp, delimiter=',')
+#	data=[]
+#	for x in avg :
+#		data.append([x])
+#	a.writerows(data)
+"""	def calcMove(self, depth, flag, color):
+		if depth == 0 :
+			score = self.tally()
+			print "----------------------------------"
+			print "Depth %d color %d" % (depth, color)
+			self.toString()
+			self.undoLastMove()
+			if color == self.b :
+				print "Found %d" % -score
+				return -score
+			print "Found %d" % score
+			return score
+		self.getMoves()
+		print "----------------------------------"
+		print "Depth %d color %d" % (depth, color)
+		self.toString()
+#		s = ""
+#		for k, v in self.moves:
+#			s += "(" + str(k) + ", " + str(v) + ") "
+#		print s
+		alpha = -64
+		beta = 64
+		for m in self.moves :
+			self.makeMove(m)
+			val = self.calcMove(depth - 1, not flag, color)
+			if flag :
+				if alpha < val :
+					alpha = val
+					self.optimalMove = m
 			else :
-				l = len(moves)
-				choice = random.randint(0, l - 1)
-				move = moves.keys()[choice]
-#				for m in moves :
-#					if len(moves[move]) < len(moves[m]) :
-#						move = m
-				r.makeMove(move)
-				c = 0
-with open('test.csv', 'w', 1) as fp:
-	a = csv.writer(fp, delimiter=',')
-	data=[]
-	for x in avg :
-		data.append([x])
-	a.writerows(data)
+				if beta > val :
+					beta = val
+			self.undoLastMove()
+		if flag :
+			return alpha
+		return beta """
