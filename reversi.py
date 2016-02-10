@@ -1,30 +1,39 @@
 import io
+import random
+import csv
 
 CONST_EMPTY = 0
 CONST_WHITE = 1
 CONST_BLACK = -1
 
 class Reversi:
-	'''Represents a 8y8 reversi board'''
-	e = CONST_EMPTY # Emptx tile 
+	'''Represents a 8x8 reversi board'''
+	e = CONST_EMPTY # Empty tile 
 	w = CONST_WHITE # White tile
 	b = CONST_BLACK # Black tile
-	board = [[e, e, e, e, e, e, e, e],
-	[e, e, e, e, e, e, e, e],
-	[e, e, e, e, e, e, e, e],
-	[e, e, e, w, b, e, e, e],
-	[e, e, e, b, w, e, e, e],
-	[e, e, e, e, e, e, e, e],
-	[e, e, e, e, e, e, e, e],
-	[e, e, e, e, e, e, e, e]]
-	white = [(3,3), (4,4)]
-	black = [(3,4), (4,3)]
 
-	directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]	
+	def __init__(self) :
+		e = self.e
+		w = self.w
+		b = self.b
+		self.board = [[e, e, e, e, e, e, e, e],
+		[e, e, e, e, e, e, e, e],
+		[e, e, e, e, e, e, e, e],
+		[e, e, e, w, b, e, e, e],
+		[e, e, e, b, w, e, e, e],
+		[e, e, e, e, e, e, e, e],
+		[e, e, e, e, e, e, e, e],
+		[e, e, e, e, e, e, e, e]]
+		self.white = [(3,3), (4,4)]
+		self.black = [(3,4), (4,3)]
 
-	nextMove = b # First move is black
+		self.directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]	
 
-	history = []
+		self.nextMove = b # First move is black
+
+		self.history = []
+
+		self.sumOptions = 0.0
 	
 	def toString(self):
 		s = "  A B C D E F G H\n"
@@ -53,7 +62,13 @@ class Reversi:
 		
 		s = ""
 		for x in self.history :
-			s += str(x) + " "
+			if x[0] == 0 : 
+				continue
+			s += "(" + self.tileToString(x[0]) + ", "
+			if x[2] == self.b :
+				s += "X) "
+			else :
+				s += "O) "
 		print "History: " + s
 
 	def getTile(self, y, x):
@@ -77,10 +92,11 @@ class Reversi:
 					if not (new in self.moves) :
 						self.moves[new] = []
 					self.moves[new].extend(temp)
+		self.sumOptions += len(self.moves)
 		return self.moves
 	
 	def passTurn(self):
-		self.history.append(("pass", 0))
+		self.history.append((0, 0, 0))
 		self.nextMove = -self.nextMove
 
 	def makeMove(self, tile):
@@ -88,7 +104,7 @@ class Reversi:
 		self.changeTile(tile)
 		for m in move :
 			self.changeTile(m)
-		self.history.append((self.tileToString(tile), self.nextMove))
+		self.history.append((tile, move, self.nextMove))
 		self.nextMove = -self.nextMove
 
 	def changeTile(self, tile):
@@ -140,29 +156,59 @@ class Reversi:
 			print "It's a draw!"
 		else :
 			print "White wins!"
+		avgBranch = self.sumOptions / len(self.history)
+		return avgBranch
 
-
-r = Reversi()
-c = 0
-for x in range(64) :
-	r.toString()
-	moves = r.getMoves()
-	if len(moves) == 0 :
-		print "No moves available"
-		if c == 1 :
-			r.tally()
-			break
-		r.passTurn()
-		c += 1
-	else :
-		for i, m in enumerate(moves) :
-			s = str(i) + " " + r.tileToString(m) + " changes: "
-			for l in moves[m] :
-				s += r.tileToString(l) + " "
-			print s
-	
-		number = input("Enter a number: ")
-		move = moves.keys()[number]
-		print r.tileToString(move)
-		r.makeMove(move)
-		c = 0
+avg = []
+for times in range(10) :
+	r = Reversi()
+	c = 0
+	flag = False
+	for x in range(64) :
+		if flag :
+			flag = False
+			r.toString()
+			moves = r.getMoves()
+			if len(moves) == 0 :
+				print "No moves available"
+				if c == 1 :
+					r.tally()
+					break
+				r.passTurn()
+				c += 1
+			else :
+				for i, m in enumerate(moves) :
+					s = str(i) + " " + r.tileToString(m) + " changes: "
+					for l in moves[m] :
+						s += r.tileToString(l) + " "
+					print s
+			
+				number = input("Enter a number: ")
+				move = moves.keys()[number]
+				print r.tileToString(move)
+				r.makeMove(move)
+				c = 0
+		else :
+#			flag = True
+			moves = r.getMoves()
+			if len(moves) == 0 :
+				if c == 1 :
+					avg.append(r.tally())
+					break
+				r.passTurn()
+				c += 1
+			else :
+				l = len(moves)
+				choice = random.randint(0, l - 1)
+				move = moves.keys()[choice]
+#				for m in moves :
+#					if len(moves[move]) < len(moves[m]) :
+#						move = m
+				r.makeMove(move)
+				c = 0
+with open('test.csv', 'w',newline='') as fp:
+	a = csv.writer(fp,delimiter=',')
+	data=[]
+	for x in avg :
+		data.append([x])
+	a.writerows(data)
