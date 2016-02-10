@@ -30,11 +30,13 @@ class Reversi:
 
 		self.directions = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]	
 
-		self.nextMove = b # First move is black
+		self.whosMove = b # First move is black
 
 		self.history = []
 
 		self.sumOptions = 0.0
+		
+		self.moves = {}
 	
 	def toString(self):
 		s = "  A B C D E F G H\n"
@@ -51,6 +53,10 @@ class Reversi:
 			c += 1
 			s += '\n'
 		print s
+		if self.whosMove == self.b :
+			print "Black's move"
+		else :
+			print "White's move"
 		print "Black = X, White = O"
 		s = ""
 		for x in self.white :
@@ -75,9 +81,9 @@ class Reversi:
 	def getTile(self, y, x):
 		return self.board[y][x]
 
-	def getMoves(self):
+	def possibleMoves(self):
 		self.moves = {}
-		if self.nextMove == self.b :
+		if self.whosMove == self.b :
 			search = self.black
 		else :
 			search = self.white
@@ -86,7 +92,7 @@ class Reversi:
 				new = (x[0] + d[0], x[1] + d[1])
 				temp = []
 				while (self.inBounds(new) and
-					(self.board[new[0]][new[1]] == -self.nextMove)) :
+					(self.board[new[0]][new[1]] == -self.whosMove)) :
 					temp.append(new)
 					new = (new[0] + d[0], new[1] + d[1])
 				if self.inBounds(new) and (self.board[new[0]][new[1]] == self.e) and len(temp) > 0 :
@@ -94,19 +100,22 @@ class Reversi:
 						self.moves[new] = []
 					self.moves[new].extend(temp)
 #		self.sumOptions += len(self.moves)
+
+	def getMoves(self):
 		return self.moves
 	
 	def passTurn(self):
 		self.history.append((0, 0, 0))
-		self.nextMove = -self.nextMove
+		self.whosMove = -self.whosMove
 
 	def makeMove(self, tile):
 		move = self.moves[tile]
 		self.changeTile(tile)
 		for m in move :
 			self.changeTile(m)
-		self.history.append((tile, move, self.nextMove))
-		self.nextMove = -self.nextMove
+		self.history.append((tile, move, self.whosMove))
+		self.whosMove = -self.whosMove
+		self.possibleMoves()
 
 	def undoLastMove(self):
 		move = self.history.pop()
@@ -117,9 +126,11 @@ class Reversi:
 			self.white.remove(tile)
 		self.board[tile[0]][tile[1]] = self.e
 		changes = move[1]
-		self.nextMove = -move[2]
+		l = len(self.history)
 		for m in changes :
 			self.changeTile(m)
+		self.whosMove = move[2]
+		self.possibleMoves()
 		
 
 	def changeTile(self, tile):
@@ -128,24 +139,48 @@ class Reversi:
 			self.black.remove(tile)
 		elif status == self.w :
 			self.white.remove(tile)
-		self.board[tile[0]][tile[1]] = self.nextMove
-		if self.nextMove == self.b :
+		self.board[tile[0]][tile[1]] = self.whosMove
+		if self.whosMove == self.b :
 			self.black.append(tile)
 		else :
 			self.white.append(tile)
 
 			 
+	def calcMove(self, depth, flag, color, parent) :
+		if depth == 0 :
+			score = self.tally()
+			if color == self.b :
+#				print "Found %d" % -score
+				return -score
+#			print "Found %d" % score
+			return score
+#		print "----------------------------------"
+#		print "Depth %d color %d" % (depth, color)
+#		self.toString()
+#		s = str(parent) + " --> "
+#		for k, v in self.moves:
+#			s += "(" + str(k) + ", " + str(v) + ") "
+#		print s
+		alpha = -64
+		beta = 64
+		for m in self.moves :
+			self.makeMove(m)
+			val = self.calcMove(depth - 1, not flag, color, m)
+			if flag :
+				if alpha < val :
+					alpha = val
+					if parent is "root" :
+						self.optimalMove = m
+			else :
+				if beta > val :
+					beta = val
+			self.undoLastMove()
+#			self.toString()
+		if flag :
+			return alpha
+		return beta
 
-	def calcMove(self, depth):
-		if depth == 0:
-			self.toString()
-			return 0
-		self.getMoves()
-		self.toString()
-		self.makeMove(self.moves.keys()[0])
-		self.calcMove(depth - 1)
-		self.undoLastMove()
-
+		
 	def getOptimalMove(self):
 		return self.optimalMove
 
@@ -173,24 +208,47 @@ class Reversi:
 #avg = []
 #for times in range(1000) :
 r = Reversi()
+r.possibleMoves()
 c = 0
-flag = True
+flag = False
 for x in range(64) :
+	r.toString()
+	moves = r.getMoves()
 	if flag :
-#		flag = False
-#		r.toString()
-		r.calcMove(3)
-		r.toString()
-		moves = r.getMoves()
+		flag = False
 		if len(moves) == 0 :
 			print "No moves available"
 			if c == 1 :
 				r.tally()
+				r.toString()
 				break
 			r.passTurn()
 			c += 1
 		else :
-			for i, m in enumerate(moves) :
+			l = len(moves)
+			choice = random.randint(0, l - 1)
+			move = moves.keys()[choice]
+#			for m in moves :
+#				if len(moves[move]) < len(moves[m]) :
+#					move = m
+			r.makeMove(move)
+			c = 0
+	else :
+		flag = True
+		if len(moves) == 0 :
+			if c == 1 :
+				r.tally()
+				r.toString()
+				break
+			r.passTurn()
+			c += 1
+		else :
+			r.calcMove(3, True, CONST_BLACK, "root")
+			m = r.getOptimalMove()
+			r.makeMove(m)
+			
+
+"""			for i, m in enumerate(moves) :
 				s = str(i) + " " + r.tileToString(m) + " changes: "
 				for l in moves[m] :
 					s += r.tileToString(l) + " "
@@ -203,65 +261,51 @@ for x in range(64) :
 			move = moves.keys()[number]
 			print r.tileToString(move)
 			r.makeMove(move)
-			c = 0
-"""	else :
-		flag = True
-		moves = r.getMoves()
-		if len(moves) == 0 :
-			if c == 1 :
-				r.tally()
-				break
-			r.passTurn()
-			c += 1
-		else :
-			l = len(moves)
-			choice = random.randint(0, l - 1)
-			move = moves.keys()[choice]
-			for m in moves :
-				if len(moves[move]) < len(moves[m]) :
-					move = m
-			r.makeMove(move)
 			c = 0 """
-
 #with open('test.csv', 'w', 1) as fp:
 #	a = csv.writer(fp, delimiter=',')
 #	data=[]
 #	for x in avg :
 #		data.append([x])
 #	a.writerows(data)
-"""	def calcMove(self, depth, flag, color):
+"""	def alphabeta(self, node, depth, alpha, beta, maximize, color) :
 		if depth == 0 :
 			score = self.tally()
-			print "----------------------------------"
-			print "Depth %d color %d" % (depth, color)
-			self.toString()
-			self.undoLastMove()
 			if color == self.b :
-				print "Found %d" % -score
-				return -score
-			print "Found %d" % score
-			return score
-		self.getMoves()
-		print "----------------------------------"
-		print "Depth %d color %d" % (depth, color)
-		self.toString()
-#		s = ""
+#				print "Found %d" % -score
+				return (-score, node)
+#			print "Found %d" % score
+			return (score, node)
+#		print "----------------------------------"
+#		print "Depth %d color %d" % (depth, color)
+#		self.toString()
+#		s = str(parent) + " --> "
 #		for k, v in self.moves:
 #			s += "(" + str(k) + ", " + str(v) + ") "
 #		print s
 		alpha = -64
 		beta = 64
-		for m in self.moves :
-			self.makeMove(m)
-			val = self.calcMove(depth - 1, not flag, color)
-			if flag :
-				if alpha < val :
-					alpha = val
-					self.optimalMove = m
-			else :
-				if beta > val :
-					beta = val
+		if maximize :
+			v = -64
+			for m in self.moves :
+				self.makeMove(m)
+				res = self.alphabeta(m, depth - 1, alpha, beta, False, color)
+				v = max(v, res[0])
+				if v == res[0] and node is "root" :
+					self.optimalMove = res[1]
+				alpha = max(alpha, v)
+				if beta <= alpha :
+					break
 			self.undoLastMove()
-		if flag :
-			return alpha
-		return beta """
+			return (v, node)
+		else :
+			v = 64
+			for m in self.moves :
+				self.makeMove(m)
+				v = min(v, self.alphabeta(m, depth - 1, alpha, beta, True, color)[0])
+				beta = min(beta, v)
+				if beta <= alpha :
+					break
+			self.undoLastMove()
+			return (v, node)
+"""
