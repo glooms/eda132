@@ -227,6 +227,7 @@ class Reversi:
 	
 
 print "Welcome to reversi!"
+print "Try to follow the instructions as closely as possible,\nthis program does not handle errors."
 timelimit = input("Input a time limit in seconds, minimum 0.2\n")
 depth = input("What recursive depth would you like for your adversary?\nWe suggest something around 3-5.\n")
 play = input("Enter a 0 if you want to play or a 1 for a simulation\n")
