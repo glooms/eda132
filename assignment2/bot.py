@@ -58,14 +58,7 @@ class Bot :
 	def can_move(self, heading) :
 		x = self.loc[0] + heading[0]
 		y = self.loc[1] + heading[1]
-		return not self.grid.is_wall(x, y)
-
-	def prob(from_state, to_state) :
-		prev_loc = from_state[0]
-		prev_h = from_state[1]
-		loc = to_state[0]
-		h = to_state[1]
-		
+		return self.grid.in_bounds(x, y)
 
 	def get_loc(self) :
 		return self.loc

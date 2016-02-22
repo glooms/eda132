@@ -1,10 +1,5 @@
 import random
 import bot
-import time
-
-CONST_WALL = 1
-CONST_EMPTY = 0
-CONST_BOT = 2
 
 S = [(-1, -1), (-1, 0), (-1, 1),
 	(0, -1), (0, 1),
@@ -14,50 +9,42 @@ S_2 = [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2),
 		(-1, -2), (-1, 2), (0, -2), (0, 2), (1, -2), (1, 2),
 		(2, -2), (2, -1), (2, 0), (2, 1), (2, 2)]
 
-
 class Grid :
 	def __init__(self, m, n) :	
-		self.grid = [[self.wall(x, y, m, n) for y in xrange(n)]
-			for x in xrange(m)]
+		self.grid = [[0 for y in xrange(n)] for x in xrange(m)]
 		self.history = []	
 		self.place_bot(m, n)
 		self.m = m
 		self.n = n
 
 	def place_bot(self, m, n) :
-		x = random.randint(1, m - 2)
-		y = random.randint(1, n - 2)
+		x = random.randint(1, m - 1)
+		y = random.randint(1, n - 1)
 		self.bot = bot.Bot(x, y, self)
 
-	def wall(self, x, y, m, n) :
-		if x == 0 or y == 0 or x == m - 1 or y == n - 1 :
-			return CONST_WALL
-		return CONST_EMPTY
-	
-	def is_wall(self, x, y) :
-		return self.grid[x][y] == CONST_WALL
-
 	def print_grid(self) :
-		s = ""
+		s = "  "
+		for x in xrange(len(self.grid)) :
+			s += " " + str(x)
+		s += "\n"
+		c = 0
 		for x in self.grid :
-			s += " "
+			s += " " + str(c) + " "
 			for y in x :
-				if y == CONST_WALL :
-					s += "#"
-				elif y == CONST_EMPTY :
-					s += " "
+				if y == 0 :
+					s += "- "
 				else :
-					s += "b"
-				s += " "
+					s += "b "
 			s += "\n"
+			c += 1
 		print s
-	
+
 	def change(self, x, y) :
-		if self.grid[x][y] == CONST_EMPTY :
-			self.grid[x][y] = CONST_BOT
+		if self.grid[x][y] == 0 :
+			self.grid[x][y] = 1 
 			self.history.append((x, y))
 		else :
-			self.grid[x][y] = CONST_EMPTY
+			self.grid[x][y] = 0 
 
 	def next(self) :
 		self.bot.move()
@@ -103,21 +90,9 @@ class Grid :
 		return "nothing"
 
 	def in_bounds(self, x, y) :
-		x_in = x > 0 and x < self.m - 1
-		y_in = y > 0 and y < self.n - 1
+		x_in = x >= 0 and x < self.m
+		y_in = y >= 0 and y < self.n
 		return x_in and y_in
 
 	def print_history(self) :
 		print self.history
-
-"""
-g = Grid(10, 10)
-bot = g.get_bot()
-for x in xrange(50) :
-	bot.move()
-	g.print_grid()
-	print
-	time.sleep(0.5)
-
-g.print_history()
-"""
