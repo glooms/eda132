@@ -2,7 +2,7 @@ import grid
 import bot
 import time
 
-size = 14
+size = 5
 g = grid.Grid(size, size)
 
 class State :	
@@ -88,18 +88,19 @@ class State :
 
 y_t = []
 tracking_grid = grid.Grid(size, size)
-for x in xrange(50) :
+for x in xrange(5) :
+	g.print_grid()
 	o = g.next() # Observation
 	y_i = State(o[0], o[1])
 #	print(y_i.to_string())
 	if not o[0] is "nothing" :
 		tracking_grid.set_bot(o[0][0], o[0][1])
-	print "\tActual grid\n"
-	g.print_grid()
-	print "\n\tTracking grid\n"
-	tracking_grid.print_grid()
-	print g.get_location()
-	print o[0]
+#	print "\tActual grid\n"
+#	print "\n\tTracking grid\n"
+#	tracking_grid.print_grid()
+#	print g.get_location()
+#	print o[0]
 	y_t.append(y_i)
 	time.sleep(0.5)
 
+g.print_history()

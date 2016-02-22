@@ -16,13 +16,10 @@ S_2 = [(-2, -2), (-2, -1), (-2, 0), (-2, 1), (-2, 2),
 
 
 class Grid :
-	grid = []
-
-	history = []	
-
 	def __init__(self, m, n) :	
 		self.grid = [[self.wall(x, y, m, n) for y in xrange(n)]
 			for x in xrange(m)]
+		self.history = []	
 		self.place_bot(m, n)
 		self.m = m
 		self.n = n
@@ -78,7 +75,6 @@ class Grid :
 
 	def get_location_noisy(self) :
 		x = random.randint(0, 9)
-		print "x = %d" % x
 		if x == 0 : # L, P(L) = 0.1
 			return self.bot.get_loc()
 		if x >= 1 and x <= 4 : # L_s, P(L_s) = 0.05 * 8 = 0.4
