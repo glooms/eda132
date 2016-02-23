@@ -1,0 +1,31 @@
+Run the program with by writing:
+
+	python main.py
+
+You can also give it parameters to disable/enable printing.
+
+E.g.
+
+	python main.py 15 1 1 0.25
+
+The first argument is how many steps are to be taken by the robot before
+the program terminates.
+
+The second argument enables printing info, meaning it will print what
+state the robot is in, what state is perceived through the noisy sensors
+and what is thought to be the state through the algorithm.
+
+The third argument enbables printing three grids which visually
+represent the three states actual, perceived and thought.
+
+The fourth argument is a float, giving the amount of time the program
+should sleep in seconds after each step so that the visualized grid can
+be viewed more easily.
+
+Default settings, while running
+
+	python main.py
+
+are equivalent to running
+
+	python main.py 15 0 0 0
