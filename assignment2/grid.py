@@ -13,16 +13,16 @@ class Grid :
 	def __init__(self, m, n) :	
 		self.grid = [[0 for y in xrange(n)] for x in xrange(m)]
 		self.history = []	
-		self.place_bot(m, n)
 		self.m = m
 		self.n = n
+		self.place_bot(m, n)
 
 	def place_bot(self, m, n) :
 		x = random.randint(1, m - 1)
 		y = random.randint(1, n - 1)
 		self.bot = bot.Bot(x, y, self)
 
-	def print_grid(self) :
+	def to_string(self) :
 		s = "  "
 		for x in xrange(len(self.grid)) :
 			s += " " + str(x)
@@ -37,7 +37,7 @@ class Grid :
 					s += "b "
 			s += "\n"
 			c += 1
-		print s
+		return s
 
 	def change(self, x, y) :
 		if self.grid[x][y] == 0 :

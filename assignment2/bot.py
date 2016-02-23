@@ -1,4 +1,5 @@
 import random
+import state
 
 # Headings up, down, left, right
 HEADINGS = [(1, 0), (-1, 0), (0, -1), (0, 1)]
@@ -24,6 +25,7 @@ class Bot :
 		self.grid = grid
 		self.loc = (x, y)
 		grid.change(self.loc[0], self.loc[1])
+		self.next_heading()
 	
 	def move(self) :
 		self.next_heading()
@@ -65,3 +67,7 @@ class Bot :
 
 	def get_heading(self) :
 		return self.heading
+
+	def to_state(self) :
+		return state.State(self.loc[0], self.loc[1],
+			self.heading)

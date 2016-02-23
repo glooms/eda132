@@ -14,6 +14,11 @@ class State :
 
 	def get_h(self) :
 		return self.h
+	
+	def diff(self, state) :
+		x_diff = self.loc[0] - state.loc[0]
+		y_diff = self.loc[1] - state.loc[1]
+		return (x_diff, y_diff)
 
 	def getID(self) :
 		x = self.loc[0]
@@ -90,7 +95,7 @@ class State :
 			else :
 				p_nothing += p_s2
 		self.emissions["nothing" + str(self.h[0]) +
-			str(self.h[0])] = p_nothing
+			str(self.h[1])] = p_nothing
 
 	def emission_prob(self, state, nothing) :
 		if nothing :
@@ -99,7 +104,8 @@ class State :
 			if sid in self.emissions :
 				return self.emissions[sid]
 			return 0
-		sid = state.getID()
+		s = State(state[0][0], state[0][1], state[1])
+		sid = s.getID()
 		if sid in self.emissions :
 			return self.emissions[sid]
 		return 0
