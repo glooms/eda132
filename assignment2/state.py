@@ -1,6 +1,9 @@
 import grid
 import bot
 
+# This class represents a robot's state, meaning location and heading.
+# It also contains functions for computing transitions and emissions.
+
 class State :
 	def __init__(self, x, y, h) :
 		self.loc = (x, y)
@@ -20,6 +23,7 @@ class State :
 		y_diff = self.loc[1] - state.loc[1]
 		return (x_diff, y_diff)
 
+	# Used for finding the state in dictionaries
 	def getID(self) :
 		x = self.loc[0]
 		y = self.loc[1]
@@ -35,18 +39,23 @@ class State :
 	def possible(self, state) :
 		return g.in_bounds(state.get_x(), state.get_y())
 		
-
+	# Checks the transition probability, the probability of going
+	# from the state 'self' to the state 'state'
+	# Looks up the state 'state' in this states dictionary of
+	# transitions.
 	def trans_prob(self, state) :
-		#print self.transitions
 		sid = state.getID()
 		if sid in self.transitions :
 			return self.transitions[sid]
 		return 0
 
+	# Called for precalculation of transition and emissions
 	def calc(self) :
 		self.calc_transitions()
 		self.calc_emissions()
 
+	# Makes a dictionary of all states that can be reached from this
+	# state and the corresponding probabilities
 	def calc_transitions(self) :
 		forward = self.new_state(self.h)
 		if self.possible(forward) :
@@ -57,6 +66,7 @@ class State :
 		self.transitions = self.trans_aux(1.0)
 		return
 
+	# Helper function for calc_transitions
 	def trans_aux(self, p) :
 		transitions = {}
 		state_list = []
@@ -71,6 +81,8 @@ class State :
 			transitions[state.getID()] = p
 		return transitions
 
+	# Constructs a dictionary of all possible emission states and
+	# the corresponding probabilities
 	def calc_emissions(self) :
 		p_correct = 0.1
 		p_s = 0.05
@@ -97,6 +109,10 @@ class State :
 		self.emissions["nothing" + str(self.h[0]) +
 			str(self.h[1])] = p_nothing
 
+	
+	# Looks up the probability of getting the state 'state' as an
+	# emission from this state. The parameter nothing is just a flag
+	# so that "nothing" emissions can be handled easier.
 	def emission_prob(self, state, nothing) :
 		if nothing :
 			sid = state[0]
