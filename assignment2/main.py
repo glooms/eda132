@@ -69,8 +69,8 @@ b = g.get_bot()
 sensor_grid = grid.Grid(size, size)
 ml_grid = grid.Grid(size, size)
 accuracy = []
-print_grid = False
-print_info = False
+print_grid = True 
+print_info = True 
 count = 0
 for i in xrange(100) :
 	obs = g.next()
@@ -97,11 +97,12 @@ for i in xrange(100) :
 		break
 	if print_info :
 		info = "Actual" + str(bstate.to_string())
-		info += "\tSensor" + str(obs)
+		info += "\tSensor" + str((obs[0], bot.h_to_string(obs[1]))) 
 		info += "\tMost likely" + str(ml_state.to_string())
 		print info + "\n"
 		print "Off by " + str(diff)
-#	time.sleep(1)
+	if print_grid :
+		time.sleep(1)
 
 s = str(len(accuracy)) + ": "
 for x in accuracy :
