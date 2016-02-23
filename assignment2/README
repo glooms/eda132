@@ -29,3 +29,12 @@ Default settings, while running
 are equivalent to running
 
 	python main.py 15 0 0 0
+
+The program always outputs a message regarding accuracy with a format
+like:
+
+	n: x1 x2 x3 x4
+
+Where n is the number of steps and x1..n are how many squares the most
+likely state is from the actual state at step 1..n. This is the computed
+manhattan distance.
